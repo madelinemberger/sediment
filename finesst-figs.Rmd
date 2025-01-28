@@ -1,0 +1,90 @@
+---
+title: "Figures for FINESST"
+author: "Maddie Berger"
+date: "2025-01-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(here)
+library(janitor)
+library(lubridate)
+
+cwb_raw <- read_csv(file.path(here("data/advisory-export.csv"))) %>%
+  clean_names()
+
+
+
+brown_water_clean <- cwb_raw %>% 
+  mutate(date = format(mdy_hms(issuance_date), "%m/%d/%Y")) %>% 
+  mutate(cause = str_to_lower(cause)) %>% 
+  mutate(cause_grouped = case_when(
+    str_detect(cause,"rain") == T ~ "rain",
+    str_detect(cause,"storm") == T ~ "storm",
+    str_detect(cause,"weather") == T ~ "storm",
+    str_detect(cause, "river") == T ~ "river or stream breach",
+    str_detect(cause, "stream") == T ~ "river or stream breach",
+    str_detect(cause, "steam") == T ~ "river or stream breach",
+    str_detect(cause, "flood") == T ~ "river or stream breach",
+    str_detect(cause, "wave") == T ~ "high surf or wave action",
+    str_detect(cause, "surf") == T ~ "high surf or wave action",
+    str_detect(cause, "erosion") == T ~ "erosion",
+    str_detect(cause, "landslide") == T ~ "erosion",
+    str_detect(cause, "construction") == T ~ "construction",
+    str_detect(cause, "hurricane") == T ~ "storm",
+    str_detect(cause,"resuspension") == T ~ "resuspension",
+    str_detect(cause, "runoff") == T ~ "runoff",
+    str_detect(cause, "debris") == T ~ "debris",
+    TRUE ~ "unknown"
+  )) %>% 
+  rowid_to_column()
+  
+
+```
+
+
+# Which causes overall have been reported most often?
+
+```{r}
+
+causes_frequency <- brown_water_clean %>% 
+  group_by(cause_grouped, county) %>% 
+  summarize(
+    num_alerts = length(rowid)
+  )
+
+# bar chart by cause and county
+
+color_palette <- c(
+  "#E69F00","#D55E00", "#56B4E9", "#009E73","#0072B2", "#FFE442",
+  "#CC79A7", "#B2DF8A", "#20C0C0", "#999999"
+)
+
+
+cause_bar <- causes_frequency %>% 
+  ggplot(aes(x = county, y = num_alerts, fill = cause_grouped))+
+  geom_bar(stat = "identity", position = "stack")+
+  scale_y_continuous(expand = c(0,0))+
+  theme_bw()+
+  labs(x = "County",
+       y = "Number of Brown Water Alerts",
+       fill = "Reported cause",
+       title = "Brown water alerts 2010 - 2024")+
+  scale_fill_manual(values = color_palette)
+
+
+cause_bar
+
+
+
+
+```
+
+
+# Timeseries data
+
+
+

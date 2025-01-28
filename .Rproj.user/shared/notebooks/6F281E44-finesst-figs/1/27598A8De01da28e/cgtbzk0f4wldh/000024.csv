@@ -1,0 +1,7 @@
+"0","ggsave(
+  filename = ""bwa_bar.png"",
+  path = here(""figs""),
+  dpi = 300
+)
+"
+"2","[38;5;252mSaving 7 x 7 in image[39m"
