@@ -99,8 +99,8 @@ ggsave(
 # Timeseries data
 
 Let's look the time component in two ways 
-- for seasonal patterns and to look at differnces between years, graph month on the x axis, alerts on y, with individual lines representing years
-- for changes in cause over time, we'll graph year and month (ie all time) on the x axis, alerts on y, and individual lines representing causes
+- for seasonal patterns and to look at differences between years, graph month on the x axis, alerts on y, with individual lines representing years
+- for changes in cause over time, we'll graph year and month (i.e. all time) on the x axis, alerts on y, and individual lines representing causes
 
 
 ```{r}
