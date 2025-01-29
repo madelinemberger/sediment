@@ -59,8 +59,16 @@ causes_frequency <- brown_water_clean %>%
 # bar chart by cause and county
 
 color_palette <- c(
-  "#E69F00","#D55E00", "#56B4E9", "#009E73","#0072B2", "#FFE442",
-  "#CC79A7", "#B2DF8A", "#20C0C0", "#999999"
+  "#E69F00",
+  "#D55E00", 
+  "#56B4E9", 
+  "#009E73",
+  "#0072B2", 
+  "#FFE442",
+  "#CC79A7", 
+  "#B2DF8A", 
+  "#20C0C0", 
+  "#999999"
 )
 
 
@@ -78,13 +86,34 @@ cause_bar <- causes_frequency %>%
 
 cause_bar
 
-
+ggsave(
+  filename = "bwa_bar.png",
+  path = here("figs"),
+  dpi = 300
+)
 
 
 ```
 
 
 # Timeseries data
+
+Let's look the time component in two ways 
+- for seasonal patterns and to look at differnces between years, graph month on the x axis, alerts on y, with individual lines representing years
+- for changes in cause over time, we'll graph year and month (ie all time) on the x axis, alerts on y, and individual lines representing causes
+
+
+```{r}
+
+# create new month column 
+
+
+
+
+
+
+
+```
 
 
 
