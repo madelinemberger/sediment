@@ -58,19 +58,21 @@ causes_frequency <- brown_water_clean %>%
 
 # bar chart by cause and county
 
-color_palette <- c(
-  "#E69F00",
-  "#D55E00", 
-  "#56B4E9", 
-  "#009E73",
-  "#0072B2", 
-  "#FFE442",
-  "#CC79A7", 
-  "#B2DF8A", 
-  "#20C0C0", 
-  "#999999"
-)
-
+cause_pal <- c(
+  "unknown" = "azure2",
+  #"2012" = "azure3",
+  #"2013" = "paleturquoise",
+  "high surf or wave action"= "paleturquoise1",
+  #"2015" = "paleturquoise3",
+  "river or stream breach" = "cadetblue",
+  "rain" = "skyblue1",
+  "resuspension"= "skyblue3",
+  "storm" = "skyblue4",
+  "debris" = "lightgoldenrod1",
+  "runoff" = "gold1",
+ # "2022" = "goldenrod1",
+  "erosion" = "darkgoldenrod2",
+  "construction" = "coral")
 
 cause_bar <- causes_frequency %>% 
   ggplot(aes(x = county, y = num_alerts, fill = cause_grouped))+
@@ -81,7 +83,8 @@ cause_bar <- causes_frequency %>%
        y = "Number of Brown Water Alerts",
        fill = "Reported cause",
        title = "Brown water alerts 2010 - 2024")+
-  scale_fill_manual(values = color_palette)
+  scale_fill_manual(values = cause_pal,
+                    limits = names(cause_pal))
 
 
 cause_bar
@@ -100,20 +103,193 @@ ggsave(
 
 Let's look the time component in two ways 
 - for seasonal patterns and to look at differences between years, graph month on the x axis, alerts on y, with individual lines representing years
-- for changes in cause over time, we'll graph year and month (i.e. all time) on the x axis, alerts on y, and individual lines representing causes
+- for changes in cause over time, we'll graph year on the x axis, alerts on y, and individual lines representing causes
+- we will repeat for month
 
 
 ```{r}
 
-# create new month column 
+# create new month column, a special column to format the x axis, and create a factored year column
+
+bwa_time <- brown_water_clean %>%
+  group_by(date) %>% 
+  summarise(
+    count = length(rowid)
+  ) %>% 
+  mutate(date = as.Date(mdy(date, tz = "HST"))) %>% # key for graphing
+  mutate(year = factor(year(date))) %>% 
+  mutate(month = month(date, label = TRUE, abbr = TRUE)) %>%
+  #mutate(month_name = format(as.Date(paste0(month, "-01"), "%m-%d"), "%B")) %>% # update 1/25 - not working
+  mutate(date_axis = update(date, year = 1)) %>% 
+  mutate(count = as.numeric(count))
+
+bwa_month <- bwa_time %>% 
+  group_by(month,year) %>% 
+  summarize(
+    count = sum(count)
+  )
+
+year_pal <- c(
+  "2010" = "azure1",
+  "2011" = "azure2",
+  "2012" = "azure3",
+  "2013" = "paleturquoise",
+  "2014"= "paleturquoise1",
+  "2015" = "paleturquoise3",
+  "2016" = "cadetblue",
+  "2017" = "skyblue1",
+  "2018"= "skyblue3",
+  "2019" = "skyblue4",
+  "2020" = "lightgoldenrod1",
+  "2021" = "gold1",
+  "2022" = "goldenrod1",
+  "2023" = "darkgoldenrod2",
+  "2024" = "coral")
+
+bwa_alerts_pyear <- bwa_month %>% 
+  ggplot(data =., mapping = aes(
+    x = month,
+    y = count,
+    color = year,
+    group = year,
+  ))+
+  geom_point(aes(color = year))+
+  geom_line(aes(color = year))+
+  #geom_bar(stat = "identity", position = "stack")+
+  #scale_x_date(date_labels = "%b", date_breaks = "1 month")+
+  scale_color_manual(values = year_pal,
+                     limits = names(year_pal))+
+  theme_minimal()
+  
 
 
-
-
-
-
+bwa_alerts_pyear
 
 ```
 
+Have causes shifted over the years? Do they change per months?
+
+```{r}
+
+# lets look at alerts per year by cause and by month by cause
+
+bwa_year_cause <- brown_water_clean %>%
+  mutate(date = as.Date(mdy(date, tz = "HST"))) %>% # key for graphing
+  mutate(year = factor(year(date))) %>%
+  mutate(month = month(date, label = TRUE, abbr = TRUE)) %>% 
+  group_by(cause_grouped,year) %>% 
+  summarize(
+    count = length(unique(rowid))
+  )
+
+  
+  
+bwa_alerts_pyear_cause <- bwa_year_cause %>% 
+  ggplot(data =., mapping = aes(
+    x = year,
+    y = count,
+    fill = cause_grouped,
+    group = cause_grouped,
+  ))+
+  geom_bar(stat = "identity", position = "stack")+
+  #geom_bar(stat = "identity", position = "stack")+
+  #scale_x_date(date_labels = "%b", date_breaks = "1 month")+
+  scale_fill_manual(values = cause_pal,
+                     limits = names(cause_pal))+
+  theme_minimal()
+  
+
+
+bwa_alerts_pyear_cause
+
+# by month?
+
+bwa_month_cause <- brown_water_clean %>%
+  mutate(date = as.Date(mdy(date, tz = "HST"))) %>% # key for graphing
+  mutate(year = factor(year(date))) %>%
+  mutate(month = month(date, label = TRUE, abbr = TRUE)) %>% 
+  group_by(cause_grouped,month) %>% 
+  summarize(
+    count = length(unique(rowid))
+  )
+
+bwa_alerts_pmonth_cause <- bwa_month_cause %>% 
+  ggplot(data =., mapping = aes(
+    x = month,
+    y = count,
+    fill = cause_grouped,
+    group = cause_grouped,
+  ))+
+  geom_bar(stat = "identity", position = "stack")+
+  #geom_bar(stat = "identity", position = "stack")+
+  #scale_x_date(date_labels = "%b", date_breaks = "1 month")+
+  scale_fill_manual(values = cause_pal,
+                     limits = names(cause_pal))+
+  theme_minimal()
+  
+
+
+bwa_alerts_pmonth_cause
+
+# last one - year by island
+
+county_pal <- c(
+  #"unknown" = "azure2",
+  #"2012" = "azure3",
+  #"2013" = "paleturquoise",
+  #"high surf or wave action"= "paleturquoise1",
+  "Kauai" = "paleturquoise3",
+  "Hawaii" = "cadetblue",
+  #"Hawaii" = "skyblue1",
+  #"resuspension"= "skyblue3",
+  #"storm" = "skyblue4",
+  "Honolulu" = "lightgoldenrod1",
+  #"runoff" = "gold1",
+ # "2022" = "goldenrod1",
+  "Maui" = "darkgoldenrod2"
+  #"Hawaii" = "coral"
+ )
+  
+
+
+bwa_year_island <- brown_water_clean %>%
+  mutate(date = as.Date(mdy(date, tz = "HST"))) %>% # key for graphing
+  mutate(year = factor(year(date))) %>%
+  mutate(month = month(date, label = TRUE, abbr = TRUE)) %>% 
+  group_by(county,year) %>% 
+  summarize(
+    count = length(unique(rowid))
+  )
+
+bwa_alerts_pcounty_year <- bwa_year_island %>% 
+  ggplot(data =., mapping = aes(
+    x = year,
+    y = count,
+    fill = county,
+    group = county
+  ))+
+  geom_bar(stat = "identity", position = "stack")+
+  #geom_bar(stat = "identity", position = "stack")+
+  #scale_x_date(date_labels = "%b", date_breaks = "1 month")+
+  scale_fill_manual(values = county_pal,
+                     limits = names(county_pal))+
+  theme_minimal()+
+  labs(x = "Year",
+       y = "Number of Brown Water Alerts",
+       fill = "County",
+       title = "Brown water alerts issued for the MHI 2010 - 2024")
+
+
+bwa_alerts_pcounty_year
+
+
+ggsave(
+  bwa_alerts_pcounty_year,
+  filename = "bwa_pyear_pcounty.png",
+  path = here("figs"),
+  dpi = 300
+)
+
+```
 
 
