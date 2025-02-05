@@ -112,7 +112,7 @@ Let's look the time component in two ways
 # create new month column, a special column to format the x axis, and create a factored year column
 
 bwa_time <- brown_water_clean %>%
-  group_by(date) %>% 
+  group_by(date, cause_grouped) %>% 
   summarise(
     count = length(rowid)
   ) %>% 
@@ -124,7 +124,7 @@ bwa_time <- brown_water_clean %>%
   mutate(count = as.numeric(count))
 
 bwa_month <- bwa_time %>% 
-  group_by(month,year) %>% 
+  group_by(month,cause_grouped) %>% 
   summarize(
     count = sum(count)
   )
@@ -150,16 +150,16 @@ bwa_alerts_pyear <- bwa_month %>%
   ggplot(data =., mapping = aes(
     x = month,
     y = count,
-    color = year,
-    group = year,
+    fill = cause_grouped,
+    group = cause_grouped,
   ))+
-  geom_point(aes(color = year))+
-  geom_line(aes(color = year))+
-  #geom_bar(stat = "identity", position = "stack")+
+  #geom_bar(aes(color = year))+
+  #geom_line(aes(color = year))+
+  geom_bar(stat = "identity", position = "stack")+
   #scale_x_date(date_labels = "%b", date_breaks = "1 month")+
-  scale_color_manual(values = year_pal,
-                     limits = names(year_pal))+
-  theme_minimal()
+  scale_fill_manual(values = cause_pal,
+                     limits = names(cause_pal))+
+  theme_bw()
   
 
 
